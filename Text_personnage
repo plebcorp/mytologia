@@ -1,0 +1,173 @@
+int afficheur_text(SDL_Surface *ecran, FILE *fichier, char *evenement, personnage *joueur)
+{
+    int seeker=0, i=0, pass=1, ligne=1, question=0, pass2=1, r=1, p=0, pretext=0;
+    int longeur_mot=0;
+    char chaine_text[200], *founder, question1[100],question2[100],question3[100],question4[100],question5[100];
+
+    TTF_Font *font=NULL;
+    SDL_Color couleur_font = {0,0,0};
+    SDL_Surface *Surface_text=NULL, *suivant=NULL, *curseur=NULL;
+    SDL_Rect position_text,position_afficheur, position_suivant, position_curseur;
+    SDL_Event event;
+
+    TTF_Init();font = TTF_OpenFont("fonts\\Enchanted.otf", 30);
+
+    position_text.x = 95;position_text.y = 425;
+    position_afficheur.x=0;position_afficheur.y=20;
+    position_suivant.x=620;position_suivant.y=535;
+    position_curseur.x=25;position_curseur.y=390;
+
+    curseur=SDL_LoadBMP("image\\curseur.bmp");
+    SDL_SetColorKey(curseur,SDL_SRCCOLORKEY, SDL_MapRGB(curseur->format,0,0,0));
+
+    Init_afficheur(ecran);
+    while(pass){
+
+         founder = strstr(chaine_text,evenement);
+         if(founder == NULL){
+         seeker = fgetc(fichier);
+         chaine_text[i]=seeker;
+         i++;chaine_text[i]='\0';
+         if(seeker == '\n'){i=0;}
+         }
+
+        else if(founder != NULL){i=0;
+            while(pass){
+
+
+                seeker = fgetc(fichier);
+
+                if(seeker =='\t' || seeker=='\n'){}
+                else if(seeker=='@'){chaine_text[i] = '\0';i=90;}
+                else if(seeker =='#'){question=1; position_text.x = 120;}
+                else if(seeker== '&'){position_curseur.y += 25;ligne=0;pretext=1;}
+                else if(seeker != ';' && i <= 90){chaine_text[i]=seeker;i++;}
+                name_seeker(chaine_text, joueur, &i);
+                if(seeker == ';' || i >= 90){
+                    chaine_text[i]='\0';i=0;
+
+                        if(question == 1){
+                            if(ligne==1){strcpy(question1, chaine_text);}
+                            else if(ligne==2){strcpy(question2, chaine_text);}
+                            else if(ligne==3){strcpy(question3, chaine_text);}
+                            else if(ligne==4){strcpy(question2, chaine_text);}
+                            else if(ligne==5){strcpy(question2, chaine_text);}
+                        }
+
+
+                        Surface_text = TTF_RenderText_Blended(font, chaine_text, couleur_font);
+                        if(seeker ==';' && ligne == 1){position_text.y +=50;}
+                        SDL_BlitSurface(Surface_text, NULL, ecran, &position_text);
+                        if(question==0){suivant = TTF_RenderText_Blended(font, "appuyez pour continuer", couleur_font);}
+
+                        SDL_BlitSurface(suivant, NULL, ecran, &position_suivant);
+                        SDL_Flip(ecran);
+                        position_text.y = position_text.y + 25;ligne++;
+
+                            if(ligne>4){evenment_menu(ecran);SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format,0,0,0));ligne=1;
+                            Init_afficheur(ecran);position_text.y = 425;}
+                            if(seeker == ';'){if(question==0){evenment_menu(ecran);}pass=0;SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format,0,0,0));position_text.y=425;}
+                }
+
+            while(pass==0 && question==1){
+            i=1;
+
+         while(pass2){
+                SDL_Delay(50);
+                Init_afficheur(ecran);
+
+                if(ligne>=1){Surface_text = TTF_RenderText_Blended(font, question1, couleur_font);
+                SDL_BlitSurface(Surface_text, NULL,ecran,&position_text);position_text.y=position_text.y + 25;}
+                if(ligne>2){Surface_text = TTF_RenderText_Blended(font, question2, couleur_font);
+                SDL_BlitSurface(Surface_text, NULL,ecran,&position_text);position_text.y=position_text.y + 25;}
+                if(ligne>3){Surface_text = TTF_RenderText_Blended(font, question3, couleur_font);
+                SDL_BlitSurface(Surface_text, NULL,ecran,&position_text);position_text.y=position_text.y + 25;}
+                if(ligne>4){Surface_text = TTF_RenderText_Blended(font, question4, couleur_font);
+                SDL_BlitSurface(Surface_text, NULL,ecran,&position_text);position_text.y=position_text.y + 25;}
+                if(ligne>5){Surface_text = TTF_RenderText_Blended(font, question5, couleur_font);
+                SDL_BlitSurface(Surface_text, NULL,ecran,&position_text);}
+
+                position_text.y=425;
+                suivant = TTF_RenderText_Blended(font, "Selectionnez la réponse", couleur_font);
+                SDL_BlitSurface(suivant, NULL, ecran, &position_suivant);
+                SDL_BlitSurface(curseur, NULL, ecran, &position_curseur);
+                SDL_Flip(ecran);
+
+                    SDL_WaitEvent(&event);
+
+                    switch(event.type){
+                case SDL_QUIT:SDL_Quit();break;
+                case SDL_KEYDOWN:
+                        switch(event.key.keysym.sym){
+                    case SDLK_ESCAPE:
+                        pass2=0;pass=0;
+                        break;
+                    case SDLK_DOWN:
+                        if(i<ligne-1 && pretext == 0 || pretext == 2){position_curseur.y=position_curseur.y + 25;i++;}
+                        else if(i<ligne-2 && pretext == 1){position_curseur.y+=25;i++;}
+
+                        break;
+                    case SDLK_UP:
+                        if(i!=1)   {position_curseur.y=position_curseur.y - 25;i--;}
+                        break;
+                    case SDLK_RETURN:
+                        pass2=0;
+                        break;
+                    case SDLK_KP_ENTER:
+                        pass2=0;
+                        break;
+                    default:
+                        break;
+                        }
+                    break;
+                    }
+                }
+
+position_text.x=95;
+suivant = TTF_RenderText_Blended(font, "appuyez pour continuer", couleur_font);
+SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format,0,0,0));ligne=1;
+Init_afficheur(ecran);
+chaine_text[0]='\0';
+if(pretext){i++;}
+while(r<=i)
+{
+    seeker = fgetc(fichier);
+    if(seeker == '\n' || seeker == '\t'){}
+    else if(seeker == '@' && r==i){p=90;}
+    else if(seeker ==';'){r++;chaine_text[p]='\0';p=0;}
+    else if(r==i && p != 90){chaine_text[p] = seeker;p++;}
+    if(r == i && ligne==1 && seeker==';'){position_text.y += 50;}
+    if(r == i+1 && seeker == ';'){
+    if(seeker ==';' && ligne == 1){position_text.y +=0;}
+    Surface_text=TTF_RenderText_Blended(font, chaine_text, couleur_font);
+    SDL_BlitSurface(Surface_text,NULL,ecran, &position_text);
+    SDL_BlitSurface(suivant, NULL, ecran, &position_suivant);
+    SDL_Flip(ecran);
+    evenment_menu(ecran);
+    }
+
+    if(p>=90){
+    Surface_text=TTF_RenderText_Blended(font, chaine_text, couleur_font);
+    SDL_BlitSurface(Surface_text,NULL,ecran, &position_text);
+    position_text.y += 25;p=0;ligne++;}
+
+    if(ligne==4){
+
+    SDL_BlitSurface(suivant,NULL,ecran, &position_suivant);
+    position_text.y=425;
+    SDL_Flip(ecran);
+    evenment_menu(ecran);
+    SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format,0,0,0));
+    Init_afficheur(ecran);
+
+    SDL_Flip(ecran);
+    ligne=0;
+    }
+
+}
+question=0;
+                }
+            }
+        }
+    }if(question == 1){return i;}
+}
